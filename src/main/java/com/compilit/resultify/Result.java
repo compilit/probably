@@ -107,8 +107,8 @@ public interface Result<T> {
   default <R> Result<R> map(Function<? super T, ? extends R> mappingFunction) {
     if (isSuccessful()) {
       var functionResult = mappingFunction.apply(get());
-      if (functionResult instanceof Result<?> result) {
-        return (Result<R>) result;
+      if (functionResult instanceof Result<?>) {
+        return (Result<R>) functionResult;
       }
       return resultOf(() -> functionResult);
     }
@@ -361,8 +361,8 @@ public interface Result<T> {
   static <T> Result<T> resultOf(Supplier<T> supplier) {
     try {
       var tmp = supplier.get();
-      if (tmp instanceof Result<?> result) {
-        return result.transform();
+      if (tmp instanceof Result<?>) {
+        return ((Result<?>) tmp).transform();
       }
       return success(supplier.get());
     } catch (Exception exception) {
@@ -416,13 +416,18 @@ public interface Result<T> {
   }
 
   private static <T> Result<T> resultOf(ResultType resultType, String message, T content, Exception exception) {
-    return switch (resultType) {
-      case SUCCESS -> success(content);
-      case UNAUTHORIZED -> unauthorized(message);
-      case NOT_FOUND -> notFound(message);
-      case ERROR_OCCURRED -> errorOccurred(exception, message);
-      default -> unprocessable(message);
-    };
+    switch (resultType) {
+      case SUCCESS:
+        return success(content);
+      case UNAUTHORIZED:
+        return unauthorized(message);
+      case NOT_FOUND:
+        return notFound(message);
+      case ERROR_OCCURRED:
+        return errorOccurred(exception, message);
+      default:
+        return unprocessable(message);
+    }
   }
 
   private static <T> T orDefault(Supplier<?> supplier, T defaultValue) {

@@ -60,8 +60,8 @@ abstract class AbstractResult<T> implements Result<T> {
     if (obj == null) {
       return get() == null;
     }
-    if (obj instanceof Result<?> result) {
-      return Objects.equals(get(), result.get());
+    if (obj instanceof Result<?>) {
+      return Objects.equals(get(), (( Result<?>)obj).get());
     }
     if (hasContents() && obj.getClass().isAssignableFrom(get().getClass())) {
       return Objects.equals(get(),  obj);
