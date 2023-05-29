@@ -1,7 +1,6 @@
 # Resultify
 
-Simple monad library to encapsulate and propagate processing results. Inspired by Results in the Rust
-programming language. (https://doc.rust-lang.org/std/result/enum.Result.html)
+Simple monad library to encapsulate and propagate processing results.
 
 Often when something deep in our code goes wrong, we have only our exceptions to rely on propagating
 error messages. But what if what happens isn't an actual "exception"? Exceptions should be just that. Exceptional. For
@@ -82,8 +81,8 @@ class ExampleClass {
 
   Result<String> getResult(Long id) {
     return respository.findById(id)
-                      .test(entity -> entity.isValid())
-                      .map(entity -> entity.getName());
+                      .test(entity -> entity.isValid()) // will do nothing if the result is already unsuccessful, will do nothing if the predicate returns true, otherwise mutate the result into Unprocessable
+                      .map(entity -> entity.getName()); //change the contents of the result if the result is successful. This in term will yield another result.
   }
 }
 ```
