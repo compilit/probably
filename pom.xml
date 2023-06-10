@@ -12,14 +12,14 @@
 
   <name>Compilit - Resultify</name>
   <artifactId>resultify</artifactId>
-  <version>${revision</version>
+  <version>${revision}</version>
   <description>A small package that enables you to encapsulate and propagate processing/validation
     results with their corresponding message and status.
   </description>
   <url>https://github.com/compilit/resultify</url>
 
   <properties>
-    <revision>0.1.0</revision>
+    <revision>1.0.0</revision>
     <slf4j-api.version>2.0.7</slf4j-api.version>
     <logback-classic.version>1.4.7</logback-classic.version>
   </properties>
