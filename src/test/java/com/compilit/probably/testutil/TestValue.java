@@ -1,4 +1,4 @@
-package com.compilit.resultify.testutil;
+package com.compilit.probably.testutil;
 
 public class TestValue {
 

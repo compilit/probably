@@ -10,13 +10,13 @@
     <version>1.4.0</version>
   </parent>
 
-  <name>Compilit - Resultify</name>
-  <artifactId>resultify</artifactId>
+  <name>Compilit - Probably</name>
+  <artifactId>probably</artifactId>
   <version>${revision}</version>
   <description>A small package that enables you to encapsulate and propagate processing/validation
-    results with their corresponding message and status.
+    process results with their corresponding message and status.
   </description>
-  <url>https://github.com/compilit/resultify</url>
+  <url>https://github.com/compilit/probably</url>
 
   <properties>
     <revision>1.0.0</revision>

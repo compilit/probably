@@ -1,97 +1,106 @@
-# Resultify
+# Probably
 
-Simple monad library to encapsulate and propagate processing results.
+Simple monad library to encapsulate and propagate processing probables.
 
 Often when something deep in our code goes wrong, we have only our exceptions to rely on propagating
 error messages. But what if what happens isn't an actual "exception"? Exceptions should be just that. Exceptional. For
-everything else a simple Result will suffice. Using results also enables you to better avoid using exceptions as a
+everything else a simple Probable will suffice. Using probables also enables you to better avoid using exceptions as a
 control flow mechanism (which is an anti-pattern).
 
-Don't confuse server responses with Results. A 404 response can be wrapped in a "not found" result,
-but a "not found" result does not necessarily mean that somewhere a server gave you a 404 server response. This means
-that it not always straightforward to map a Result to a server response, be cautious.
-
-# installation
+### installation
 
 Get this dependency with the latest version
 
 ```xml
 
 <dependency>
-  <artifactId>resultify</artifactId>
+  <artifactId>probably</artifactId>
   <groupId>com.compilit</groupId>
 </dependency>
 ```
 
-# usage
+### usage
 
-Everything can be handled through the Result interface. Whenever you have some process that could
-possibly fail, make sure that it returns a Result. Which Result should be returned can be chosen manually or by passing
-the process as a function into the resultOf methods.
+Everything can be handled through the Probable interface. Whenever you have some process that could
+possibly fail, make sure that it returns a Probable. Which Probable should be returned can be chosen manually or by
+passing
+the process as a function into the probableOf methods.
 
 ```java
-import com.compilit.resultify.Result;
+
+import com.compilit.probably.Probable;
 
 class Example {
 
-  Result<?> exampleMethod1() {
+  Probable<?> exampleMethod1() {
     if (everythingWentWellInAVoidProcess()) {
-      return Result.success();
+      return Probable.successful();
     } else {
-      return Result.errorOccurred(TEST_MESSAGE);
+      return Probable.unsuccessful(TEST_MESSAGE);
     }
   }
 
-  Result<?> exampleMethod2() {
+  Probable<?> exampleMethod2() {
     if (everythingWentWellInAProcess()) {
-      return Result.success(content);
+      return Probable.successful(content);
     } else {
-      return Result.errorOccurred(TEST_MESSAGE);
+      return Probable.unsuccessful(TEST_MESSAGE);
     }
   }
 
-  Result<?> exampleMethod3() {
+  Probable<?> exampleMethod3() {
     if (something.doesNotMeetOurExpectations()) {
-      return Result.unprocessable("Reason");
+      return Probable.unsuccessful("Reason");
     } else {
-      return Result.errorOccurred(TEST_MESSAGE);
+      return Probable.unsuccessful(TEST_MESSAGE);
     }
   }
 
-  Result<?> exampleMethod4() {
-    return Result.resultOf(() -> doSomethingDangerous());
+  Probable<?> exampleMethod4() {
+    return Probable.probableOf(() -> doSomethingDangerous());
   }
 
-  Result<?> exampleMethod5() {
-    return Result.<SomeOtherType>transform(Result.<OneType>errorOccured()); // Returns the error result, with the matching return type.
+  Probable<?> exampleMethod5() {
+    return Probable.<SomeOtherType>transform(Probable.<OneType>unsuccessful()); // Returns the unsuccessful probable, with the matching return type.
   }
 }
 
 ```
 
-### Chaining results
+### Chaining probables
 
-The map and flatMap methods enable you to take your result and apply a function to it. But only in case
-it is successful. This means you can chain result methods through a fluent API. Caution should be taken when handling a
-successful result, since results can be successful but not have any contents. Here is an example:
+The map and flatMap methods enable you to take your probable and apply a function to it. But only in case
+it is successful. This means you can chain probable methods through a fluent API. Since probables can be successful but
+not have any contents, map and flatMap won't do anything to a null content. Otherwise your original, possible failed
+Probable would be lost by the Probable encountering exceptions during the map and flatMap methods. Here is an example:
 
 ```java
 class ExampleClass {
   //(...)
 
-  Result<String> getResult(Long id) {
+  Probable<String> getProbable(Long id) {
     return respository.findById(id)
-                      .test(entity -> entity.isValid()) // will do nothing if the result is already unsuccessful, will do nothing if the predicate returns true, otherwise mutate the result into Unprocessable
-                      .map(entity -> entity.getName()); //change the contents of the result if the result is successful. This in term will yield another result.
+                      .test(entity -> entity.isValid()) // will do nothing if the probable is already unsuccessful, will do nothing if the predicate returns true, otherwise mutate the probable into Unprocessable
+                      .map(entity -> entity.getName()); //change the contents of the probable if the probable is successful. This in term will yield another probable.
   }
 }
 ```
 
-Here we call some repository and transform the result into a String, but first we test if the entity is in fact valid.
-If the result was not successful the original result will be returned without content.
+Here we call some repository and transform the probable into a String, but first we test if the entity is in fact valid.
+If the probable was not successful the original probable will be returned without content.
 
 ### map vs flatMap
 
-For those who don't know when to use which, map is the default method used to chain operations in case you don't have any nested
-results. But if you do have nested results, use the flatMap method. This avoids having to deal with results like Result<
-Result<String>> and instead transforms it into a Result<String>.
+For those who don't know when to use which, map is the default method used to chain operations in case you don't have
+any nested
+probables. But if you do have nested probables, use the flatMap method. This avoids having to deal with probables like
+Probable<Probable<String>> and instead transforms it into a Probable<String>.
+
+### Probable vs Optional
+
+Even though they might bare some resemblance, Optionals are a different data structure. They provide the same basic
+wrapping mechanism around a value as Probable, mapping functions included, but an Optional does not provide insight in
+what went wrong and where. It has no context. The result of an Optional can only be null or non-null. A Probable is much
+more flexible, since having no contents does not mean something went wrong. This allows you to use Probables for void
+processes as well. Other than that, a Probable provides a few more handy methods and functions which allow you to use
+them much more broadly.
