@@ -34,7 +34,7 @@ class Example {
 
   Probable<?> exampleMethod1() {
     if (everythingWentWellInAVoidProcess()) {
-      return Probable.successful();
+      return Probable.empty();
     } else {
       return Probable.unsuccessful(TEST_MESSAGE);
     }
@@ -42,7 +42,7 @@ class Example {
 
   Probable<?> exampleMethod2() {
     if (everythingWentWellInAProcess()) {
-      return Probable.successful(content);
+      return Probable.value(content);
     } else {
       return Probable.unsuccessful(TEST_MESSAGE);
     }
@@ -57,7 +57,7 @@ class Example {
   }
 
   Probable<?> exampleMethod4() {
-    return Probable.probableOf(() -> doSomethingDangerous());
+    return Probable.of(() -> doSomethingDangerous());
   }
 
   Probable<?> exampleMethod5() {

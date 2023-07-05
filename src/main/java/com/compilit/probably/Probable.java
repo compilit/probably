@@ -21,23 +21,23 @@ public class Probable<T> {
   private final String message;
   private final Exception exception;
 
-  protected Probable(Type probableType) {
+  private Probable(Type probableType) {
     this(probableType, probableType.getDefaultMessage());
   }
 
-  protected Probable(Type probableType, String message) {
-    this(probableType, null, null, message);
+  private Probable(Type probableType, String message) {
+    this(probableType, null, message, null);
   }
 
-  protected Probable(Type probableType, T contents) {
-    this(probableType, contents, null, probableType.getDefaultMessage());
+  private Probable(Type probableType, T contents) {
+    this(probableType, contents, probableType.getDefaultMessage(), null);
   }
 
-  protected Probable(Type probableType, T contents, Exception exception, String message) {
+  private Probable(Type probableType, T contents, String message, Exception exception) {
     this.probableType = probableType;
     this.contents = contents;
-    this.exception = exception;
     this.message = message;
+    this.exception = exception;
   }
 
   /**
@@ -87,7 +87,7 @@ public class Probable<T> {
    * @return true if the ProbableType equals SUCCESS.
    */
   public final boolean isSuccessful() {
-    return geType().equals(Type.SUCCESSFUL);
+    return geType().equals(Type.VALUE);
   }
 
   /**
@@ -124,7 +124,7 @@ public class Probable<T> {
   /**
    * Get the Probable if present, otherwise return the other Probable.
    *
-   * @return the alternative the Probable or the other Probable.
+   * @return the Probable or the other Probable.
    */
   public final Probable<T> or(Probable<T> otherProbable) {
     if (isSuccessful()) {
@@ -157,12 +157,12 @@ public class Probable<T> {
    * @return the final Probable
    */
   public final <R> Probable<R> map(Function<? super T, ? extends R> mappingFunction) {
-    if (isSuccessful() && hasContents()) {
+    if (isSuccessful()) {
       var functionProbable = mappingFunction.apply(get());
       if (functionProbable instanceof Probable<?>) {
         return (Probable<R>) functionProbable;
       }
-      return probableOf(() -> functionProbable);
+      return of(() -> functionProbable);
     }
     return transform(this);
   }
@@ -188,7 +188,7 @@ public class Probable<T> {
    * @return the final Probable
    */
   public final <R> Probable<R> flatMap(Function<? super T, ? extends Probable<? extends R>> mappingFunction) {
-    if (isSuccessful() && hasContents()) {
+    if (isSuccessful()) {
       return (Probable<R>) mappingFunction.apply(get());
     }
     return transform(this);
@@ -206,7 +206,7 @@ public class Probable<T> {
     if (isValid) {
       return this;
     }
-    return probableOf(Type.FAILED, Messages.failedPredicate(predicate), get(), null);
+    return of(Type.EMPTY, Messages.failedPredicate(predicate), get(), null);
   }
 
   /**
@@ -262,19 +262,19 @@ public class Probable<T> {
    * @param <T> the type of the contents.
    * @return a success Probable.
    */
-  public static <T> Probable<T> successful() {
-    return new Probable<>(Type.SUCCESSFUL);
+  public static <T> Probable<T> empty() {
+    return new Probable<>(Type.EMPTY);
   }
 
   /**
    * A generic success Probable for a process or validation.
    *
-   * @param contents the contents of the Probable.
-   * @param <T>      the type of the contents.
-   * @return a success Probable with contents. Or an empty resource Probable if the content is null.
+   * @param value the value of the Probable.
+   * @param <T>      the type of the value.
+   * @return a success Probable with value. Or an empty resource Probable if the content is null.
    */
-  public static <T> Probable<T> successful(T contents) {
-    return new Probable<>(Type.SUCCESSFUL, contents);
+  public static <T> Probable<T> value(T value) {
+    return new Probable<>(Type.VALUE, value);
   }
 
   /**
@@ -285,9 +285,9 @@ public class Probable<T> {
    * @param formatArguments the message arguments you with to replace the '%s' (for example) symbol with.
    * @return an error occurred Probable with a message.
    */
-  public static <T> Probable<T> failed(String message, String... formatArguments) {
+  public static <T> Probable<T> failure(String message, String... formatArguments) {
     var actualMessage = MessageFormatter.formatMessage(message, (Object[]) formatArguments);
-    return new Probable<>(Type.FAILED, actualMessage);
+    return new Probable<>(Type.FAILURE, actualMessage);
   }
 
   /**
@@ -298,26 +298,41 @@ public class Probable<T> {
    * @param formatArguments the message arguments you with to replace the '%s' (for example) symbol with.
    * @return an error occurred Probable with a message.
    */
-  public static <T> Probable<T> failed(Exception exception, String message, String... formatArguments) {
+  public static <T> Probable<T> failure(Exception exception, String message, String... formatArguments) {
     var actualMessage = MessageFormatter.formatMessage(message, (Object[]) formatArguments);
-    return new Probable<>(Type.FAILED, null, exception, actualMessage);
+    return new Probable<>(Type.FAILURE, null, actualMessage, exception);
   }
 
   /**
-   * A generic Probable that encapsulates a supplying process. Returns a Success Probable with the supplied content if the
-   * Supplier does not throw an Exception. If the Supplier throws an Exception, it returns a corresponding Probable with
+   * A generic Probable that encapsulates a value. Returns a Success Probable with the supplied content if the
+   * value is not null. This bind function is comparable to Optional.ofNullable(value).
+   *
+   * @param value the value that needs to be present in order for the Probable to be successful
+   * @param <T>                 the type of the contents.
+   * @return SuccessProbable or UnsuccessfulProbable with the exception message.
+   */
+  public static <T> Probable<T> of(T value) {
+      if (value == null) {
+        return empty();
+      }
+      return value(value);
+  }
+
+  /**
+   * A generic Probable that encapsulates a UnaryOperator process. Returns a Success Probable with the supplied content if the
+   * UnaryOperator does not throw an Exception. If the Supplier throws an Exception, it returns a corresponding Probable with
    * the exception message added to the Probable.
    *
    * @param probableUnaryOperator the function that returns the final Probable.
    * @param <T>                 the type of the contents.
    * @return SuccessProbable or UnsuccessfulProbable with the exception message.
    */
-  public static <T> Probable<T> probableOf(UnaryOperator<Probable<T>> probableUnaryOperator) {
-    var defaultProbable = Probable.<T>successful();
+  public static <T> Probable<T> of(UnaryOperator<Probable<T>> probableUnaryOperator) {
+    var defaultProbable = Probable.<T>empty();
     try {
       return probableUnaryOperator.apply(defaultProbable);
     } catch (Exception exception) {
-      return failed(exception, exception.getMessage());
+      return failure(exception, exception.getMessage());
     }
   }
 
@@ -330,15 +345,15 @@ public class Probable<T> {
    * @param <T>      the type of the contents.
    * @return SuccessProbable or UnsuccessfulProbable with the exception message.
    */
-  public static <T> Probable<T> probableOf(Supplier<T> supplier) {
+  public static <T> Probable<T> of(Supplier<T> supplier) {
     try {
       var tmp = supplier.get();
       if (tmp instanceof Probable<?>) {
         return ((Probable<?>) tmp).transform();
       }
-      return successful(supplier.get());
+      return value(supplier.get());
     } catch (Exception exception) {
-      return failed(exception, exception.getMessage());
+      return failure(exception, exception.getMessage());
     }
   }
 
@@ -352,15 +367,11 @@ public class Probable<T> {
    * @param <T>       the type of the contents.
    * @return SuccessProbable, UnprocessableProbable or UnsuccessfulProbable with the exception message.
    */
-  public static <T> Probable<T> probableOf(Predicate<T> predicate, T value) {
+  public static <T> Probable<T> of(Predicate<T> predicate, T value) {
     try {
-      var probableIsValid = predicate.test(value);
-      if (probableIsValid) {
-        return successful(value);
-      }
-      return failed(Messages.UNSUCCESSFUL);
+        return value(value).test(predicate);
     } catch (Exception exception) {
-      return failed(exception, exception.getMessage());
+      return failure(exception, exception.getMessage());
     }
   }
 
@@ -381,17 +392,17 @@ public class Probable<T> {
       R contents = orDefault(probable::get, null);
 
       if (contents != null) {
-        return probableOf(probableStatus, probableMessage, contents, exception);
+        return of(probableStatus, probableMessage, contents, exception);
       }
     }
-    return probableOf(probableStatus, probableMessage, null, exception);
+    return of(probableStatus, probableMessage, null, exception);
   }
 
-  private static <T> Probable<T> probableOf(Type probableType, String message, T content, Exception exception) {
-    if (Objects.requireNonNull(probableType) == Type.SUCCESSFUL) {
-      return successful(content);
+  private static <T> Probable<T> of(Type probableType, String message, T content, Exception exception) {
+    if (Objects.requireNonNull(probableType) == Type.VALUE) {
+      return value(content);
     }
-    return failed(exception, message);
+    return failure(exception, message);
   }
 
   private static <T> T orDefault(Supplier<?> supplier, T defaultValue) {
@@ -419,11 +430,17 @@ public class Probable<T> {
     /**
      * Status for all successful probables.
      */
-    SUCCESSFUL(Messages.SUCCESSFUL),
+    VALUE(Messages.VALUE),
+
     /**
-     * Status for all unsuccessful probables.
+     * Status for all empty probables.
      */
-    FAILED(Messages.UNSUCCESSFUL);
+    EMPTY(Messages.EMPTY),
+
+    /**
+     * Status for all failed probables.
+     */
+    FAILURE(Messages.FAILURE);
 
     private final String defaultMessage;
 

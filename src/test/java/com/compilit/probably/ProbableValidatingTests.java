@@ -11,31 +11,31 @@ class ProbableValidatingTests {
 
   @Test
   void test_valid_shouldReturnProbable() {
-    var probable = Probable.successful(TEST_CONTENTS);
+    var probable = Probable.value(TEST_CONTENTS);
     assertThat(probable.test(x -> x.equals(TEST_CONTENTS))).isEqualTo(probable);
   }
 
   @Test
   void test_invalid_shouldReturnAlteredProbable() {
-    var probable = Probable.successful(TEST_CONTENTS);
+    var probable = Probable.value(TEST_CONTENTS);
     var actual = probable.test(x -> x.equals("something else"));
     assertThat(actual)
-      .satisfies(r -> assertThat(r.geType()).isEqualTo(Type.FAILED))
+      .satisfies(r -> assertThat(r.geType()).isEqualTo(Type.EMPTY))
       .isNotEqualTo(probable);
   }
 
   @Test
   void test_successfulPredicateTest_shouldReturnProbable() {
-    var probable = Probable.successful(TEST_CONTENTS).test(x -> x.equals(TEST_CONTENTS));
-    assertThat(probable.geType()).isEqualTo(Type.SUCCESSFUL);
+    var probable = Probable.value(TEST_CONTENTS).test(x -> x.equals(TEST_CONTENTS));
+    assertThat(probable.geType()).isEqualTo(Type.VALUE);
   }
 
   @Test
   void test_failingPredicateTest_shouldReturnAlteredProbable() {
-    var probable = Probable.successful(TEST_CONTENTS);
+    var probable = Probable.value(TEST_CONTENTS);
     var actual = probable.test(x -> x.equals("something else"));
     assertThat(actual)
-      .satisfies(r -> assertThat(r.geType()).isEqualTo(Type.FAILED))
+      .satisfies(r -> assertThat(r.geType()).isEqualTo(Type.EMPTY))
       .isNotEqualTo(probable);
   }
 
