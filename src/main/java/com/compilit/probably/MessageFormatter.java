@@ -2,7 +2,7 @@ package com.compilit.probably;
 
 import java.util.IllegalFormatException;
 
-class MessageFormatter {
+final class MessageFormatter {
 
   private MessageFormatter() {
   }

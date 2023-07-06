@@ -1,6 +1,6 @@
 package com.compilit.probably;
 
-import static com.compilit.probably.testutil.TestValue.TEST_CONTENT;
+import static com.compilit.probably.testutil.TestValue.TEST_VALUE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.compilit.probably.Probable.Type;
@@ -12,59 +12,48 @@ import org.junit.jupiter.api.Test;
 class ProbableCreationTests {
 
   @Test
-  void successful_shouldReturnSuccessProbable() {
-    ProbableAssertions.assertThat(Probable.empty()).isSuccessfulProbable()
+  void empty_shouldReturnEmptyProbable() {
+    ProbableAssertions.assertThat(Probable.nothing())
                       .isEmpty();
   }
 
   @Test
-  void successful$thenApply_shouldReturnSuccessProbable() {
-    ProbableAssertions.assertThat(Probable.empty())
-                      .isSuccessfulProbable()
-                      .isEmpty();
-  }
-
-
-  @Test
-  void successful_shouldReturnSuccessProbableWithContents() {
-    ProbableAssertions.assertThat(Probable.value(TEST_CONTENT))
-                      .isSuccessfulProbable()
-                      .containsContent(TEST_CONTENT);
+  void value_shouldReturnValueProbable() {
+    ProbableAssertions.assertThat(Probable.value(TEST_VALUE))
+                      .hasValue(TEST_VALUE);
   }
 
   @Test
-  void failed_shouldReturnFailedProbable() {
+  void failure_shouldReturnFailedProbable() {
     ProbableAssertions.assertThat(Probable.failure(TestValue.TEST_MESSAGE))
-                      .isUnsuccessfulProbable()
+                      .hasFailed()
                       .containsMessage(TestValue.TEST_MESSAGE);
   }
 
   @Test
-  void failed_withFormattedMessage_shouldReturnFormattedMessage() {
+  void failure_withFormattedMessage_shouldReturnFormattedMessage() {
     var expected = String.format("test %s", "test");
     var probable = Probable.failure("test %s", "test");
     Assertions.assertThat(probable.getMessage()).isEqualTo(expected);
-    Assertions.assertThat(probable.geType()).isEqualTo(Type.EMPTY);
+    Assertions.assertThat(probable.getType()).isEqualTo(Type.FAILURE);
   }
 
-  @Test
-  void transform_shouldReturnEmptyProbableWithCorrectStatus() {
-    var probable = Probable.value("test");
-    assertThat(probable.isEmpty()).isFalse();
-    var actual = Probable.<Integer>transform(probable);
-    ProbableAssertions.assertThat(actual)
-                      .hasContent()
-                      .isSuccessfulProbable();
-  }
-
-  @Test
-  void transform_withoutContent_shouldReturnSameStatusWithoutContent() {
-    var probable = Probable.value(TEST_CONTENT);
-    var actual = Probable.<Integer>transform(probable);
-    ProbableAssertions.assertThat(actual)
-                      .hasContent()
-                      .isSuccessfulProbable();
-  }
+//  @Test
+//  void transform_shouldReturnEmptyProbableWithCorrectStatus() {
+//    var probable = Probable.value("test");
+//    assertThat(probable.isEmpty()).isFalse();
+//    var actual = Probable.<Integer>transform(probable);
+//    ProbableAssertions.assertThat(actual)
+//                      .hasValue();
+//  }
+//
+//  @Test
+//  void transform_withoutContent_shouldReturnSameStatusWithoutContent() {
+//    var probable = Probable.value(TEST_VALUE);
+//    var actual = Probable.<Integer>transform(probable);
+//    ProbableAssertions.assertThat(actual)
+//                      .hasValue();
+//  }
 
 
 }

@@ -11,22 +11,22 @@ import org.junit.jupiter.api.Test;
 class ProbableOfTest {
 
   @Test
-  void probableOf_SuccessfulPredicate_shouldReturnSuccessProbable() {
+  void probableOf_successfulPredicate_shouldReturnSuccessProbable() {
     var probable = of(x -> true, null);
-    ProbableAssertions.assertThat(probable).isSuccessfulProbable()
+    ProbableAssertions.assertThat(probable)
                       .isEmpty();
   }
 
   @Test
-  void probableOf_UnsuccessfulPredicate_shouldReturnUnprocessableProbable() {
+  void probableOf_unsuccessfulPredicate_shouldReturnUnprocessableProbable() {
     var probable = of(x -> false, null);
-    ProbableAssertions.assertThat(probable).isUnsuccessfulProbable()
+    ProbableAssertions.assertThat(probable).hasFailed()
                       .isEmpty();
   }
 
   @Test
-  void probableOf_ExceptionalPredicate_shouldReturnUnsuccessfulProbable() {
-    var exception = new RuntimeException(TestValue.TEST_CONTENT);
+  void probableOf_exceptionalPredicate_shouldReturnUnsuccessfulProbable() {
+    var exception = new RuntimeException(TestValue.TEST_MESSAGE);
     var throwingPredicate = new Predicate<String>() {
       @Override
       public boolean test(String s) {
@@ -35,21 +35,20 @@ class ProbableOfTest {
     };
     var message = exception.getMessage();
     var probable = of(throwingPredicate, null);
-    ProbableAssertions.assertThat(probable).isUnsuccessfulProbable().containsMessage(message);
+    ProbableAssertions.assertThat(probable).hasFailed().containsMessage(message);
   }
 
   @Test
   void probableOf_successfulSupplier_shouldReturnSuccessProbable() {
-    Supplier<String> supplier = () -> TestValue.TEST_CONTENT;
+    Supplier<String> supplier = () -> TestValue.TEST_VALUE;
     var probable = Probable.of(supplier);
     ProbableAssertions.assertThat(probable)
-                      .isSuccessfulProbable()
-                      .containsContent(TestValue.TEST_CONTENT);
+                      .hasValue(TestValue.TEST_VALUE);
   }
 
   @Test
-  void probableOf_UnsuccessfulSupplier_shouldReturnUnsuccessfulProbable() {
-    var exception = new RuntimeException(TestValue.TEST_CONTENT);
+  void probableOf_unsuccessfulSupplier_shouldReturnUnsuccessfulProbable() {
+    var exception = new RuntimeException(TestValue.TEST_VALUE);
     var Supplier = new Supplier<Probable<String>>() {
       @Override
       public Probable<String> get() {
@@ -58,7 +57,7 @@ class ProbableOfTest {
     };
     var message = exception.getMessage();
     var probable = Probable.of(Supplier);
-    ProbableAssertions.assertThat(probable).isUnsuccessfulProbable().containsMessage(message);
+    ProbableAssertions.assertThat(probable).hasFailed().containsMessage(message);
   }
 
   @Test
@@ -67,8 +66,7 @@ class ProbableOfTest {
                                             .flatMap(x -> Probable.value(String.valueOf(x))
                                                                   .flatMap(z -> Probable.value(Integer.valueOf(z)))));
     ProbableAssertions.assertThat(probable)
-                      .isSuccessfulProbable()
-                      .containsContent(123);
+                      .hasValue(123);
   }
 
 }

@@ -1,7 +1,7 @@
 package com.compilit.probably;
 
-import static com.compilit.probably.Messages.JUST;
-import static com.compilit.probably.testutil.TestValue.TEST_CONTENT;
+import static com.compilit.probably.Messages.NOTHING;
+import static com.compilit.probably.testutil.TestValue.TEST_VALUE;
 import static com.compilit.probably.testutil.TestValue.TEST_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,7 +13,7 @@ class ProbableMethodTests {
 
   @Test
   void isEmpty_emptyProbable_shouldReturnTrue() {
-    var probable = Probable.empty();
+    var probable = Probable.nothing();
     assertThat(probable.isEmpty()).isTrue();
   }
 
@@ -25,50 +25,50 @@ class ProbableMethodTests {
 
   @Test
   void getProbableType_shouldReturnProbableType() {
-    assertThat(Probable.empty().geType())
-      .isEqualTo(Type.VALUE);
-    assertThat(Probable.failure(TEST_MESSAGE).geType())
-      .isEqualTo(Type.EMPTY);
+    assertThat(Probable.nothing().getType())
+      .isEqualTo(Type.NOTHING);
+    assertThat(Probable.failure(TEST_MESSAGE).getType())
+      .isEqualTo(Type.FAILURE);
   }
 
   @Test
-  void hasContents_withContents_shouldReturnTrue() {
-    var probable = Probable.value(TestValue.TEST_CONTENT);
-    assertThat(probable.hasContents()).isTrue();
+  void hasValue_withContents_shouldReturnTrue() {
+    var probable = Probable.value(TestValue.TEST_VALUE);
+    assertThat(probable.hasValue()).isTrue();
   }
 
   @Test
-  void hasContents_withoutContents_shouldReturnFalse() {
-    var probable = Probable.empty();
-    assertThat(probable.hasContents()).isFalse();
+  void hasValue_withoutContents_shouldReturnFalse() {
+    var probable = Probable.nothing();
+    assertThat(probable.hasValue()).isFalse();
   }
 
   @Test
   void isEmpty_withContents_shouldReturnFalse() {
-    var probable = Probable.value(TestValue.TEST_CONTENT);
+    var probable = Probable.value(TestValue.TEST_VALUE);
     assertThat(probable.isEmpty()).isFalse();
   }
 
   @Test
   void isEmpty_withoutContents_shouldReturnTrue() {
-    var probable = Probable.empty();
+    var probable = Probable.nothing();
     assertThat(probable.isEmpty()).isTrue();
   }
 
   @Test
-  void getOptionalContents_shouldReturnContentsAsOptional() {
-    var probable = Probable.value(TestValue.TEST_CONTENT);
-    assertThat(probable.get()).contains(TestValue.TEST_CONTENT);
+  void get_shouldReturnContentsAsOptional() {
+    var probable = Probable.value(TestValue.TEST_VALUE);
+    assertThat(probable.get()).contains(TestValue.TEST_VALUE);
   }
 
   @Test
-  void getContents_shouldReturnContents() {
-    var probable = Probable.value(TestValue.TEST_CONTENT);
-    assertThat(probable.get()).isEqualTo(TestValue.TEST_CONTENT);
+  void get_shouldReturnContents() {
+    var probable = Probable.value(TestValue.TEST_VALUE);
+    assertThat(probable.get()).isEqualTo(TestValue.TEST_VALUE);
   }
 
   @Test
-  void thenApply_intProbableToString_shouldReturnString() {
+  void map_intProbableToString_shouldReturnString() {
     var input = 123;
     var expected = "123";
     var probable = Probable.value(input);
@@ -77,7 +77,7 @@ class ProbableMethodTests {
   }
 
   @Test
-  void thenApply_successful_shouldApplyFunction() {
+  void map_successful_shouldApplyFunction() {
     var expected = "10";
     var probable = Probable.value(10);
     Probable<String> actual = probable.map(String::valueOf);
@@ -85,14 +85,14 @@ class ProbableMethodTests {
   }
 
   @Test
-  void thenApply_failed_shouldReturnProbableWithMessage() {
+  void map_failed_shouldReturnProbableWithMessage() {
     var probable = Probable.failure(TEST_MESSAGE);
-    var actual = probable.map(x -> TEST_CONTENT);
+    var actual = probable.map(x -> TEST_VALUE);
     assertThat(actual.getMessage()).isEqualTo(TEST_MESSAGE);
   }
 
   @Test
-  void getNullableContents_null_shouldReturnNull() {
+  void get_null_shouldReturnNull() {
     var errorProbable = Probable.failure(TEST_MESSAGE);
     assertThat(errorProbable.get()).isNull();
   }
@@ -102,8 +102,8 @@ class ProbableMethodTests {
     var errorMessage = "I am error";
     var errorProbable = Probable.failure(errorMessage);
     assertThat(errorProbable.getMessage()).isEqualTo(errorMessage);
-    var successfulProbable = Probable.empty();
-    assertThat(successfulProbable.getMessage()).isEqualTo(JUST);
+    var successfulProbable = Probable.nothing();
+    assertThat(successfulProbable.getMessage()).isEqualTo(NOTHING);
   }
 
   @Test
@@ -111,6 +111,26 @@ class ProbableMethodTests {
     var expected = String.format("I am error %s %s %s %s", "test1", "test2", "someValue", "test3");
     var actual = Probable.failure("I am error %s %s %s %s", "test1", "test2", "someValue", "test3");
     assertThat(actual.getMessage()).isEqualTo(expected);
+  }
+
+  @Test
+  void or_withValue_shouldReturnTheOriginalProbable() {
+    var probable = Probable.value(TEST_VALUE);
+    assertThat(probable.or(Probable.nothing())).isEqualTo(probable);
+  }
+
+  @Test
+  void or_empty_shouldReturnTheOtherProbable() {
+    var probable = Probable.<String>nothing();
+    var otherProbable = Probable.value(TEST_VALUE);
+    assertThat(probable.or(otherProbable)).isEqualTo(otherProbable);
+  }
+
+  @Test
+  void or_failed_shouldReturnTheOtherProbable() {
+    var probable = Probable.<String>failure(TEST_MESSAGE);
+    var otherProbable = Probable.value(TEST_VALUE);
+    assertThat(probable.or(otherProbable)).isEqualTo(otherProbable);
   }
 
 }

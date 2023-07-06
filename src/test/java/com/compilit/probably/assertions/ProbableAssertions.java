@@ -10,22 +10,15 @@ public class ProbableAssertions<T> extends AbstractAssert<ProbableAssertions<T>,
     super(probable, ProbableAssertions.class);
   }
 
-  public ProbableAssertions<T> isSuccessfulProbable() {
-    if (actual.isUnsuccessful()) {
-      failWithMessage("Expected Probable to be successful, but was: %s %s", actual.geType(), actual.getMessage());
+  public ProbableAssertions<T> hasFailed() {
+    if (!actual.hasFailed()) {
+      failWithMessage("Expected Probable to have failed");
     }
     return this;
   }
 
-  public ProbableAssertions<T> isUnsuccessfulProbable() {
-    if (actual.isSuccessful()) {
-      failWithMessage("Expected Probable to be unsuccessful");
-    }
-    return this;
-  }
-
-  public ProbableAssertions<T> hasContent() {
-    if (!actual.hasContents()) {
+  public ProbableAssertions<T> hasValue() {
+    if (!actual.hasValue()) {
       failWithMessage("Expected Probable to have content but was empty");
     }
     return this;
@@ -38,14 +31,14 @@ public class ProbableAssertions<T> extends AbstractAssert<ProbableAssertions<T>,
     return this;
   }
 
-  public ProbableAssertions<T> containsContent(T content) {
-    if (!actual.hasContents()) {
-      failWithMessage("Expected Probable to have content but was empty");
+  public ProbableAssertions<T> hasValue(T value) {
+    if (!actual.hasValue()) {
+      failWithMessage("Expected Probable to have a value but was empty");
     }
-    if (!actual.get().equals(content)) {
+    if (!actual.get().equals(value)) {
       failWithMessage(
-        "Expected Probable to have content equal to %s but was %s",
-        content,
+        "Expected Probable to have a value equal to %s but was %s",
+        value,
         actual.get()
       );
     }
