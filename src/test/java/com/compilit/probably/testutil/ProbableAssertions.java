@@ -1,4 +1,4 @@
-package com.compilit.probably.assertions;
+package com.compilit.probably.testutil;
 
 import com.compilit.probably.Probable;
 import org.assertj.core.api.AbstractAssert;
@@ -35,17 +35,17 @@ public class ProbableAssertions<T> extends AbstractAssert<ProbableAssertions<T>,
     if (!actual.hasValue()) {
       failWithMessage("Expected Probable to have a value but was empty");
     }
-    if (!actual.get().equals(value)) {
+    if (!actual.getValue().equals(value)) {
       failWithMessage(
         "Expected Probable to have a value equal to %s but was %s",
         value,
-        actual.get()
+        actual.getValue()
       );
     }
     return this;
   }
 
-  public ProbableAssertions<T> containsMessage(String message) {
+  public ProbableAssertions<T> hasMessage(String message) {
     if (!actual.getMessage().equals(message)) {
       failWithMessage(
         "Expected Probable to have a message equal to %s but was %s",

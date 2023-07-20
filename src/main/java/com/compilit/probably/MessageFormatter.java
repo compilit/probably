@@ -9,7 +9,7 @@ final class MessageFormatter {
 
   static String formatMessage(String message, Object... formatArguments) {
     if (message == null) {
-      return Messages.NO_MESSAGE_AVAILABLE;
+      return Messages.NOTHING_TO_REPORT;
     }
     if (formatArguments == null || formatArguments.length == 0) {
       return message;
@@ -17,7 +17,7 @@ final class MessageFormatter {
     try {
       return String.format(message, formatArguments);
     } catch (IllegalFormatException exception) {
-      return Messages.MESSAGE_FORMAT_ERROR + exception.getMessage();
+      return Messages.messageFormatException(exception);
     }
   }
 

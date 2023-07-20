@@ -1,20 +1,59 @@
 package com.compilit.probably;
 
+import static com.compilit.probably.testutil.TestValue.TEST_MESSAGE;
 import static com.compilit.probably.testutil.TestValue.TEST_VALUE;
-import static org.assertj.core.api.Assertions.assertThat;
 
-import com.compilit.probably.Probable.Type;
-import com.compilit.probably.assertions.ProbableAssertions;
+import com.compilit.probably.testutil.ProbableAssertions;
 import com.compilit.probably.testutil.TestValue;
+import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ProbableCreationTests {
 
   @Test
-  void empty_shouldReturnEmptyProbable() {
-    ProbableAssertions.assertThat(Probable.nothing())
-                      .isEmpty();
+  void of_successfulSupplier_shouldReturnProbableValue() {
+    Supplier<String> supplier = () -> TestValue.TEST_VALUE;
+    var probable = Probable.of(supplier);
+    ProbableAssertions.assertThat(probable)
+                      .hasValue(TestValue.TEST_VALUE);
+  }
+
+  @Test
+  void of_unsuccessfulSupplier_shouldReturnProbableFailure() {
+    var exception = new RuntimeException(TestValue.TEST_VALUE);
+    var supplier = new Supplier<Probable<String>>() {
+      @Override
+      public Probable<String> get() {
+        throw exception;
+      }
+    };
+    var message = exception.getMessage();
+    var probable = Probable.of(supplier);
+    ProbableAssertions.assertThat(probable).hasFailed().hasMessage(message);
+  }
+
+  @Test
+  void of_nested_shouldReturnProbableValue() {
+    var probable = Probable.of(() -> Probable.of(123)
+                                             .flatMap(x -> Probable.of(String.valueOf(x))
+                                                                   .flatMap(z -> Probable.of(Integer.valueOf(z)))))
+                           .map(Probable::getValue);
+    ProbableAssertions.assertThat(probable)
+                      .hasValue(123);
+  }
+
+  @Test
+  void of_value_shouldReturnProbableValue() {
+    var probable = Probable.of(TestValue.TEST_VALUE);
+    ProbableAssertions.assertThat(probable)
+                      .hasValue(TestValue.TEST_VALUE);
+  }
+
+  @Test
+  void of_null_shouldReturnProbableNothing() {
+    var probable = Probable.of((Object) null);
+    ProbableAssertions.assertThat(probable).isEmpty();
   }
 
   @Test
@@ -24,10 +63,30 @@ class ProbableCreationTests {
   }
 
   @Test
+  void value$message_shouldReturnValueProbableWithMessage() {
+    ProbableAssertions.assertThat(Probable.value(TEST_VALUE, TEST_MESSAGE))
+                      .hasMessage(TEST_MESSAGE)
+                      .hasValue(TEST_VALUE);
+  }
+
+  @Test
+  void nothing_shouldReturnEmptyProbable() {
+    ProbableAssertions.assertThat(Probable.nothing())
+                      .isEmpty();
+  }
+
+  @Test
+  void nothing$message_shouldReturnEmptyProbableWithMessage() {
+    ProbableAssertions.assertThat(Probable.nothing(TEST_MESSAGE))
+                      .hasMessage(TEST_MESSAGE)
+                      .isEmpty();
+  }
+
+  @Test
   void failure_shouldReturnFailedProbable() {
     ProbableAssertions.assertThat(Probable.failure(TestValue.TEST_MESSAGE))
                       .hasFailed()
-                      .containsMessage(TestValue.TEST_MESSAGE);
+                      .hasMessage(TestValue.TEST_MESSAGE);
   }
 
   @Test
@@ -35,25 +94,9 @@ class ProbableCreationTests {
     var expected = String.format("test %s", "test");
     var probable = Probable.failure("test %s", "test");
     Assertions.assertThat(probable.getMessage()).isEqualTo(expected);
-    Assertions.assertThat(probable.getType()).isEqualTo(Type.FAILURE);
+    ProbableAssertions.assertThat(probable)
+                      .hasFailed()
+                      .hasMessage(expected);
   }
-
-//  @Test
-//  void transform_shouldReturnEmptyProbableWithCorrectStatus() {
-//    var probable = Probable.value("test");
-//    assertThat(probable.isEmpty()).isFalse();
-//    var actual = Probable.<Integer>transform(probable);
-//    ProbableAssertions.assertThat(actual)
-//                      .hasValue();
-//  }
-//
-//  @Test
-//  void transform_withoutContent_shouldReturnSameStatusWithoutContent() {
-//    var probable = Probable.value(TEST_VALUE);
-//    var actual = Probable.<Integer>transform(probable);
-//    ProbableAssertions.assertThat(actual)
-//                      .hasValue();
-//  }
-
 
 }
