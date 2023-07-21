@@ -35,11 +35,11 @@ public class ProbableAssertions<T> extends AbstractAssert<ProbableAssertions<T>,
     if (!actual.hasValue()) {
       failWithMessage("Expected Probable to have a value but was empty");
     }
-    if (!actual.getValue().equals(value)) {
+    if (!actual.get().equals(value)) {
       failWithMessage(
         "Expected Probable to have a value equal to %s but was %s",
         value,
-        actual.getValue()
+        actual.get()
       );
     }
     return this;

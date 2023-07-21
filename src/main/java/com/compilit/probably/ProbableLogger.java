@@ -30,14 +30,14 @@ class ProbableLogger {
       return String.format(
         Messages.BASE_LOG_MESSAGE,
         probable.getClass().getSimpleName(),
-        probable.getValue(),
+        probable.get(),
         probable.getMessage()
       );
     }
     return String.format(
       Messages.BASE_LOG_MESSAGE_WITH_CUSTOM_MESSAGE,
       probable.getClass().getSimpleName(),
-      probable.getValue(),
+      probable.get(),
       probable.getMessage(),
       logMessage
     );

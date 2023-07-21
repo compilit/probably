@@ -70,27 +70,14 @@ class ProbableMethodTests {
   @Test
   void getValue_shouldReturnContentsAsOptional() {
     var probable = Probable.of(TestValue.TEST_VALUE);
-    assertThat(probable.getValue()).contains(TestValue.TEST_VALUE);
+    assertThat(probable.get()).contains(TestValue.TEST_VALUE);
   }
 
   @Test
   void getValue_shouldReturnContents() {
     var probable = Probable.of(TestValue.TEST_VALUE);
-    assertThat(probable.getValue()).isEqualTo(TestValue.TEST_VALUE);
+    assertThat(probable.get()).isEqualTo(TestValue.TEST_VALUE);
   }
-
-  @Test
-  void getOptionalValue_shouldReturnContentsAsOptional() {
-    var probable = Probable.of(TestValue.TEST_VALUE);
-    assertThat(probable.getOptionalValue()).contains(TestValue.TEST_VALUE);
-  }
-
-  @Test
-  void getOptionalValue_shouldReturnContents() {
-    var probable = Probable.of(TestValue.TEST_VALUE);
-    assertThat(probable.getOptionalValue()).contains(TestValue.TEST_VALUE);
-  }
-
 
   @Test
   void orElse_hasValue_shouldReturnValue() {
@@ -172,7 +159,7 @@ class ProbableMethodTests {
     var expected = "123";
     var probable = Probable.of(input);
     var actual = probable.map(String::valueOf);
-    assertThat(actual.getValue()).isEqualTo(expected);
+    assertThat(actual.get()).isEqualTo(expected);
   }
 
   @Test
@@ -180,7 +167,7 @@ class ProbableMethodTests {
     var expected = "10";
     var probable = Probable.of(10);
     Probable<String> actual = probable.map(String::valueOf);
-    assertThat(actual.getValue()).contains(expected);
+    assertThat(actual.get()).contains(expected);
   }
 
   @Test
@@ -228,7 +215,7 @@ class ProbableMethodTests {
   @Test
   void getValue_null_shouldReturnNull() {
     var errorProbable = Probable.failure(TEST_MESSAGE);
-    assertThat(errorProbable.getValue()).isNull();
+    assertThat(errorProbable.get()).isNull();
   }
 
   @Test

@@ -17,8 +17,8 @@ import static com.compilit.probably.Messages.paramRequired;
 import static com.compilit.probably.Messages.testCallSuccessful;
 import static com.compilit.probably.ProbableLogger.logDebugEvent;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,12 +29,13 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
 /**
- * A Probable encapsulates more than just a value, as opposed to an Optional. In case some process during the retrieval
- * of said value failed, or some predicate about the value returned false, you now have a context to find out what went
- * wrong and why. There are three possible outcomes to a process: Probable.Value, Probable.Nothing and Probable.Failure.
- * Probable.Values encapsulate a value from a "happy" flow. Probable.Nothings encapsulate nothing, from a "happy" flow
- * (a void process basically), and a Probable.Failure encapsulates a failure message and possibly an Exception. All will
- * have a default message, but also provide the possibility to add custom messages and even Exceptions to its context.
+ * A {@code Probable} encapsulates more than just a value, as opposed to an {@code Optional}. In case some process
+ * during the retrieval of said value failed, or some predicate about the value returned false, you now have a context
+ * to find out what went wrong and why. There are three possible outcomes to a process: {@code Probable.Value},
+ * {@code Probable.Nothing} and {@code Probable.Failure}. {@code Probable.Value}s encapsulate a value from a "happy"
+ * flow. {@code Probable.Nothing}s encapsulate nothing, from a "happy" flow (a void process basically), and a
+ * {@code Probable.Failure} encapsulates a failure message and possibly an Exception. All will have a default message,
+ * but also provide the possibility to add custom messages and even Exceptions to its context.
  * <p>
  * Contrary to Optionals, Probables are partially extendable. So if you think you need more types than the three
  * currently implemented, you can add them. To prevent introducing unwanted behavior, most Probable methods are made
@@ -56,7 +57,7 @@ public abstract class Probable<T> {
    *
    * @param value           the nullable value of the probable
    * @param exception       the nullable exception encountered during the processing of the probable
-   * @param message         the non-null message for the probable
+   * @param message         the non-{@code null} message for the probable
    * @param formatArguments the optional format argument for the message,
    * @throws NullPointerException if message is {@code null}
    */
@@ -73,21 +74,12 @@ public abstract class Probable<T> {
   }
 
   /**
-   * Get the nullable value of the Probable.
+   * Returns the nullable value.
    *
-   * @return the nullable value of the Probable.
+   * @return the nullable value described by this {@code Probable}
    */
-  public final T getValue() {
+  public final T get() {
     return value;
-  }
-
-  /**
-   * Get the value of the Probable.
-   *
-   * @return the value of the Probable wrapped in an Optional.
-   */
-  public final Optional<T> getOptionalValue() {
-    return Optional.ofNullable(value);
   }
 
   /**
@@ -396,6 +388,48 @@ public abstract class Probable<T> {
   }
 
   /**
+   * If a value is present, returns the value, otherwise returns the result produced by the supplying function.
+   *
+   * @param supplier the supplying function that produces a value to be returned
+   * @return the value, if present, otherwise the result produced by the supplying function
+   * @throws NullPointerException if no value is present and the supplying function is {@code null}
+   */
+  public T orElseGet(Supplier<? extends T> supplier) {
+    return value != null ? value : supplier.get();
+  }
+
+  /**
+   * If a value is present, returns the value, otherwise throws {@code NoSuchElementException}.
+   *
+   * @return the non-{@code null} value described by this {@code Probable}
+   * @throws NoSuchElementException if no value is present
+   * @since 10
+   */
+  public T orElseThrow() {
+    return orElseThrow(() -> new NoSuchElementException("No value present"));
+  }
+
+  /**
+   * If a value is present, returns the value, otherwise throws an exception produced by the exception supplying
+   * function.
+   *
+   * @param <X>               Type of the exception to be thrown
+   * @param exceptionSupplier the supplying function that produces an exception to be thrown
+   * @return the value, if present
+   * @throws X                    if no value is present
+   * @throws NullPointerException if no value is present and the exception supplying function is {@code null}
+   * @apiNote A method reference to the exception constructor with an empty argument list can be used as the supplier.
+   * For example, {@code IllegalStateException::new}
+   */
+  public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
+    if (value != null) {
+      return value;
+    } else {
+      throw exceptionSupplier.get();
+    }
+  }
+
+  /**
    * If the given argument is null, return true if this value of this Probable is also null. If the given argument is an
    * instance of Probable, compare the value of both. If this probable has a value return true if the given argument
    * class is assignable from the class of the value inside this Probable. All other cases are considered false.
@@ -409,7 +443,7 @@ public abstract class Probable<T> {
       return true;
     }
     if (obj instanceof Probable<?>) {
-      return Objects.equals(value, ((Probable<?>) obj).getValue());
+      return Objects.equals(value, ((Probable<?>) obj).get());
     }
     return Objects.equals(obj, value);
   }
@@ -447,9 +481,9 @@ public abstract class Probable<T> {
   }
 
   /**
-   * A generic Probable that encapsulates a supplying process. Returns a Success Probable with the supplied content if
-   * the Supplier does not throw an Exception. If the Supplier throws an Exception, it returns a corresponding Probable
-   * with the exception message added to the Probable.
+   * A generic Probable that encapsulates a supplying process. Returns a Probable.Value with the supplied content if the
+   * Supplier does not throw an Exception. If the Supplier throws an Exception, it returns a corresponding Probable with
+   * the exception message added to the Probable.
    *
    * @param supplier the content-supplying function.
    * @param <T>      the type of the value.

@@ -38,7 +38,7 @@ class ProbableCreationTests {
     var probable = Probable.of(() -> Probable.of(123)
                                              .flatMap(x -> Probable.of(String.valueOf(x))
                                                                    .flatMap(z -> Probable.of(Integer.valueOf(z)))))
-                           .map(Probable::getValue);
+                           .map(Probable::get);
     ProbableAssertions.assertThat(probable)
                       .hasValue(123);
   }
