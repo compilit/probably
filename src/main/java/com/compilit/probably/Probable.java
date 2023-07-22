@@ -17,7 +17,6 @@ import static com.compilit.probably.Messages.paramRequired;
 import static com.compilit.probably.Messages.testCallSuccessful;
 import static com.compilit.probably.ProbableLogger.logDebugEvent;
 
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,6 +40,8 @@ import org.slf4j.event.Level;
  * currently implemented, you can add them. To prevent introducing unwanted behavior, most Probable methods are made
  * final. So you can extend, but not alter.
  * </p>
+ * No method inside the {@code Probable} will throw an exception, except for the possible {@code NullPointerException}s
+ * when passing {@code null} arguments into required parameters.
  *
  * @param <T> The type of the Probable you wish to return.
  */
@@ -80,6 +81,33 @@ public abstract class Probable<T> {
    */
   public final T get() {
     return value;
+  }
+
+  /**
+   * In case you have a nested {@code Probable}, return the lowest nullable level value
+   *
+   * @param <R> the return type of the nested Probable
+   * @return the value of the lowest {@code Probable} that is nested inside this instance
+   */
+  public final <R> R deepGet() {
+    if (hasValue()) {
+      if (get() instanceof Probable<?>) {
+        var probable = (Probable<?>) get();
+        return probable.deepGet();
+      }
+      return (R) get();
+    }
+    return null;
+  }
+
+  /**
+   * In case you have a nested {@code Probable}, return the lowest level {@code Probable}
+   *
+   * @param <R> the return type of the nested Probable
+   * @return the lowest {@code Probable} that is nested inside this instance
+   */
+  public final <R> Probable<R> deepGetProbable() {
+    return Probable.of(() -> (R) deepGet());
   }
 
   /**
@@ -221,10 +249,9 @@ public abstract class Probable<T> {
    */
   public final <R> Probable<R> flatMap(Function<? super T, ? extends Probable<? extends R>> mappingFunction) {
     Objects.requireNonNull(mappingFunction, paramRequired("mappingFunction"));
-    Probable<T> baseProbable = new InternalProbable<>(this).getDeepestNestedProbable();
     if (hasValue()) {
       return failureOnException(probable -> {
-        var newProbable = mappingFunction.apply(baseProbable.value);
+        var newProbable = mappingFunction.apply(get());
         logDebugEvent(newProbable, FLATMAP_APPLIED);
         return (Probable<R>) newProbable;
       }, FLATMAP_NOT_APPLIED);
@@ -385,48 +412,6 @@ public abstract class Probable<T> {
       return log(Level.ERROR, message, args);
     }
     return this;
-  }
-
-  /**
-   * If a value is present, returns the value, otherwise returns the result produced by the supplying function.
-   *
-   * @param supplier the supplying function that produces a value to be returned
-   * @return the value, if present, otherwise the result produced by the supplying function
-   * @throws NullPointerException if no value is present and the supplying function is {@code null}
-   */
-  public T orElseGet(Supplier<? extends T> supplier) {
-    return value != null ? value : supplier.get();
-  }
-
-  /**
-   * If a value is present, returns the value, otherwise throws {@code NoSuchElementException}.
-   *
-   * @return the non-{@code null} value described by this {@code Probable}
-   * @throws NoSuchElementException if no value is present
-   * @since 10
-   */
-  public T orElseThrow() {
-    return orElseThrow(() -> new NoSuchElementException("No value present"));
-  }
-
-  /**
-   * If a value is present, returns the value, otherwise throws an exception produced by the exception supplying
-   * function.
-   *
-   * @param <X>               Type of the exception to be thrown
-   * @param exceptionSupplier the supplying function that produces an exception to be thrown
-   * @return the value, if present
-   * @throws X                    if no value is present
-   * @throws NullPointerException if no value is present and the exception supplying function is {@code null}
-   * @apiNote A method reference to the exception constructor with an empty argument list can be used as the supplier.
-   * For example, {@code IllegalStateException::new}
-   */
-  public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
-    if (value != null) {
-      return value;
-    } else {
-      throw exceptionSupplier.get();
-    }
   }
 
   /**

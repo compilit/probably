@@ -418,29 +418,58 @@ class ProbableMethodTests {
   }
 
   @Test
-  void getDeepestNestedProbable_firstLevel_shouldReturnSelf() {
+  void deepGetProbable_firstLevel_shouldReturnSelf() {
     var probable = Probable.of(TEST_VALUE);
-    assertThat(new InternalProbable<>(probable).getDeepestNestedProbable()).isEqualTo(probable);
+    assertThat(probable.deepGetProbable()).isEqualTo(probable);
   }
 
   @Test
-  void getDeepestNestedProbable_nested_shouldReturnDeepestLevel() {
+  void deepGetProbable_nested_shouldReturnDeepestLevel() {
     var probable3 = Probable.of(TEST_VALUE);
     var probable2 = Probable.of(probable3);
     var probable1 = Probable.of(probable2);
-    assertThat(new InternalProbable<>(probable1).getDeepestNestedProbable()).isEqualTo(probable3);
+    assertThat(probable1.deepGetProbable()).isEqualTo(probable3);
   }
 
   @Test
-  void getDeepestNestedProbable_failed_shouldReturnProbableFailed() {
+  void deepGetProbable_failed_shouldReturnProbableFailed() {
     var probable = Probable.failure(TEST_MESSAGE);
-    assertThat(new InternalProbable<>(probable).getDeepestNestedProbable()).isEqualTo(probable);
+    assertThat(probable.deepGetProbable()).isEqualTo(probable);
   }
 
   @Test
-  void getDeepestNestedProbable_nothing_shouldReturnProbableNothing() {
+  void deepGetProbable_nothing_shouldReturnProbableNothing() {
     var probable = Probable.nothing();
-    assertThat(new InternalProbable<>(probable).getDeepestNestedProbable()).isEqualTo(probable);
+    assertThat(probable.deepGetProbable()).isEqualTo(probable);
+  }
+
+  @Test
+  void deepGet_firstLevel_shouldReturnSelf() {
+    var probable = Probable.of(TEST_VALUE);
+    assertThat(probable.deepGetProbable()).isEqualTo(probable);
+  }
+
+  @Test
+  void deepGet_nested_shouldReturnDeepestLevel() {
+    var probable3 = Probable.of(TEST_VALUE);
+    var probable2 = Probable.of(probable3);
+    var probable1 = Probable.of(probable2);
+    var value = probable1.deepGet();
+    assertThat(value).isEqualTo(TEST_VALUE);
+  }
+
+  @Test
+  void deepGet_failed_shouldReturnProbableFailed() {
+    var probable = Probable.failure(TEST_MESSAGE);
+    var value = probable.deepGet();
+    assertThat(value).isNull();
+  }
+
+  @Test
+  void deepGet_nothing_shouldReturnProbableNothing() {
+    var probable = Probable.nothing();
+    var value = probable.deepGet();
+    assertThat(value).isNull();
   }
 
   @Test
