@@ -332,35 +332,6 @@ class ProbableMethodTests {
   }
 
   @Test
-  void logFailure_failure_shouldLog() {
-    Logger logger = (Logger) LoggerFactory.getLogger(Probable.class);
-    var memoryAppender = new MemoryAppender();
-    memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
-    logger.setLevel(Level.INFO);
-    logger.addAppender(memoryAppender);
-    memoryAppender.start();
-    var testMessage = "something has gone wrong";
-    var probable = Probable.failure(TEST_MESSAGE);
-    var result = probable.logFailure(testMessage);
-    assertEquals(result, probable);
-    assertThat(memoryAppender.contains(testMessage, Level.ERROR)).isTrue();
-  }
-
-  @Test
-  void logFailure_noFailure_shouldNotLog() {
-    Logger logger = (Logger) LoggerFactory.getLogger(Probable.class);
-    var memoryAppender = new MemoryAppender();
-    memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
-    logger.setLevel(Level.INFO);
-    logger.addAppender(memoryAppender);
-    memoryAppender.start();
-    var probable = Probable.of(TEST_MESSAGE);
-    var result = probable.logFailure("testMessage");
-    assertEquals(result, probable);
-    assertThat(memoryAppender.countEventsForLogger("com.compilit.probably.Probable")).isZero();
-  }
-
-  @Test
   void then$Consumer_valuePresent_shouldApplyConsumer() {
     AtomicReference<Boolean> atomicReference = new AtomicReference<>(false);
     var probable = Probable.of(TEST_VALUE);

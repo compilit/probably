@@ -401,20 +401,6 @@ public abstract class Probable<T> {
   }
 
   /**
-   * Log the Probable and message on level ERROR if the Probable has failed.
-   *
-   * @param message the message you wish to log before the Probable log
-   * @param args    the structured arguments you wish to add to your log before the Probable log
-   * @return the original Probable
-   */
-  public final Probable<T> logFailure(String message, Object... args) {
-    if (hasFailed()) {
-      return log(Level.ERROR, message, args);
-    }
-    return this;
-  }
-
-  /**
    * If the given argument is null, return true if this value of this Probable is also null. If the given argument is an
    * instance of Probable, compare the value of both. If this probable has a value return true if the given argument
    * class is assignable from the class of the value inside this Probable. All other cases are considered false.

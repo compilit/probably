@@ -9,13 +9,16 @@ control flow mechanism (which is an anti-pattern).
 
 A Probable can be an instance of one of three possible subtypes:
 
- - <b>Probable.Value</b> - which means that the process it encapsulated was successful and yielded a value
- - <b>Probable.Nothing</b>  - which means that the process it encapsulated was successful but did not yield a value (this must've
-been intentional).
- - <b>Probable.Failure</b>  - which means that the process encountered an error or some validation upon the value did not pass
+- <b>Probable.Value</b> - which means that the process it encapsulated was successful and yielded a value
+- <b>Probable.Nothing</b>  - which means that the process it encapsulated was successful but did not yield a value (this
+  must've
+  been intentional).
+- <b>Probable.Failure</b>  - which means that the process encountered an error or some validation upon the value did not
+  pass
 
-All Probables will have a default message, but a Probable.Failure can have a custom message inside it to provide more information about why it was a
-Probable.Failure.
+All Probables will have a default message, but a custom message can always be added to provide more information about
+the outcome. These messages can later be used in logging messages for example. Or directly by using the provided `log()`
+methods.
 
 ### installation
 
@@ -92,6 +95,12 @@ For those who don't know when to use which, map is the default method used to ch
 any nested
 probables. But if you do have nested probables, use the flatMap method. This avoids having to deal with probables like
 `Probable<Probable<String>>` and instead transforms it into a `Probable<String>`.
+
+### Debugging
+
+Since it can be confusing to work with a Probable.Failure that is the result of several `map()` or `flatMap()` calls, an
+automatic debug message features is added (provided that you use the `slf4j-api`). Simply set your logging level to
+DEBUG and you'll automatically see the result of every operation that happened inside your Probable.
 
 ### Probable vs Optional
 
