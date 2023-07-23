@@ -1,6 +1,7 @@
 package com.compilit.probably.testutil;
 
 import com.compilit.probably.Probable;
+import java.util.function.Predicate;
 import org.assertj.core.api.AbstractAssert;
 
 public class ProbableAssertions<T> extends AbstractAssert<ProbableAssertions<T>, Probable<T>> {
@@ -20,6 +21,13 @@ public class ProbableAssertions<T> extends AbstractAssert<ProbableAssertions<T>,
   public ProbableAssertions<T> hasValue() {
     if (!actual.hasValue()) {
       failWithMessage("Expected Probable to have content but was empty");
+    }
+    return this;
+  }
+
+  public ProbableAssertions<T> hasValueMatching(Predicate<T> predicate) {
+    if (!predicate.test(actual.get())) {
+      failWithMessage("Expected Probable to match predicate but it did not");
     }
     return this;
   }
