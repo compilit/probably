@@ -91,7 +91,7 @@ If the probable did not have any value the original probable will be returned wi
 
 ### map vs flatMap
 
-For those who don't know when to use which, map is the default method used to chain operations in case you don't have
+For those who don't know when to use which, map is the default method used to map the direct value of the Probable in case you don't have
 any nested
 probables. But if you do have nested probables, use the flatMap method. This avoids having to deal with probables like
 `Probable<Probable<String>>` and instead transforms it into a `Probable<String>`.
