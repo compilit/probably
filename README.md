@@ -69,7 +69,7 @@ class Example {
 
 ### Chaining probables
 
-The map and flatMap methods enable you to take your probable and apply a function to it. But only in case
+Methods like map, flatMap, test, thenRun and thenApply enable you to take your probable and apply a function to it. But only in case
 it has a value. This means you can chain probable methods through a fluent API. Map and flatMap won't do anything to a
 null value (in other words, a Probable.Nothing or Probable.Failure). Otherwise, your original, possibly failed
 Probable would be lost by the Probable encountering exceptions during the map and flatMap methods. Here is an example:
